@@ -7,7 +7,9 @@ trigger: manual
 1. Call me NiceguyLang every time you respond.
 2. Do not try to please me. If you find anything vague, ask me questions about them.
 
-See PRD at project_memory/PRD.md and mockups at project_memory/mockup/.
+## When developing, 
+1. Always see PRD at project_memory/PRD.md and mockups at project_memory/mockup/.
+2. Do not refer to hw3_comparison folder.
 
 ## Tech Stack
 Frontend: React (Vite), TypeScript, Tailwind CSS, Zustand, React Hook Form, Zod, HERE JS SDK, Axios, Web Push API.
@@ -22,17 +24,32 @@ Folders are split into frontend/src, backend/src, and shared.
 ## Design Reference
 
 ### Key Pages
-- Login/Register: Centered card layout, "PreLeave" logo + title at top, email and password input fields, toggle link to switch between login and signup.
-- Dashboard: Top nav with user info, list of upcoming trips showing departure time and recommendation badge (Bus/Uber), "Plan New Trip" button.
-- Trip Form: Start address (HERE autocomplete), destination address (HERE autocomplete), arrival date+time picker, submit button.
-- Result Page: Side-by-side comparison card for Bus ETA vs Uber ETA, recommended option highlighted, calculated departure time.
+- Login/Register page: 
+  - Centered card layout
+  - "PreLeave" logo + title at top
+  - Email and password input fields
+  - toggle link to switch between login and signup
+- Home page: 
+  - List of upcoming trips showing all the details like locations, arrival time, and recommendation badge (Bus/Uber) with recommended leaving time
+  - "Plan New Trip" button
+  - User profile button
+- Plan page: 
+  - Input start address
+  - Input destination address
+  - Input arrival date and time picker
+  - "Plan" button
+- Profile page: 
+  - Show the current user's username
+  - List all the trip histories
+  - "Reuse" button for duplicating a trip today
+  - "Delete" button to delete a trip history
 
 ### User Flows
 - Unauthenticated user visits any protected route → redirect to /login.
-- Login success → redirect to /dashboard.
-- Dashboard → click "Plan New Trip" → /trips/new → fill form → submit → result page with ETA comparison.
-- Dashboard → click past trip → "Use Again" → pre-filled trip form.
-- Register → email + password → "I agree" checkbox → submit → auto login → /dashboard.
+- Login success → redirect to /homepage.
+- Homepage → click "Plan New Trip" → /trips/new → submit → display result page on homepage.
+- Homepage → click profile → "Reuse" → pre-filled trip form → display result page on homepage.
+- Register → email + password → "I agree" checkbox → submit → auto login → /homepage.
 
 ### UI Behavior
 - Form validation: Inline red error text below each field using React Hook Form + Zod.
