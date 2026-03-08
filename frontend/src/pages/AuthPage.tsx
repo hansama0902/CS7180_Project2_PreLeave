@@ -1,36 +1,50 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { authSchema, AuthFormData } from '../schemas/auth.schema';
+import { useNavigate } from 'react-router-dom';
+import { loginSchema, registerSchema, RegisterFormData } from '../schemas/auth.schema';
+import api from '../services/api';
 import { Loader2 } from 'lucide-react';
 
 export default function AuthPage() {
     const [isLogin, setIsLogin] = useState(true);
     const [globalError, setGlobalError] = useState('');
+    const navigate = useNavigate();
+
+    // Use RegisterFormData to cover all possible fields
+    type FormValues = RegisterFormData;
 
     const {
         register,
         handleSubmit,
         formState: { errors, isSubmitting },
         reset,
-    } = useForm<AuthFormData>({
-        resolver: zodResolver(authSchema),
+    } = useForm<FormValues>({
+        resolver: zodResolver(isLogin ? loginSchema : registerSchema) as any,
     });
 
-    const onSubmit = async (data: AuthFormData) => {
+    const onSubmit = async (data: FormValues) => {
         setGlobalError('');
         try {
-            // Mocking async submission behavior
-            await new Promise((resolve) => setTimeout(resolve, 500));
-
-            if (data.email === 'wrong@example.com') {
-                throw new Error('Invalid credentials');
+            if (isLogin) {
+                await api.post('/auth/login', {
+                    email: data.email,
+                    password: data.password,
+                });
+            } else {
+                await api.post('/auth/register', {
+                    email: data.email,
+                    password: data.password,
+                    // backend doesn't expect agreeToTerms, but we enforce it on frontend.
+                });
             }
 
-            // Mock success logic here later
-            console.log('Success!', data);
+            // Redirect user to homepage on success
+            navigate('/homepage');
         } catch (error: any) {
-            setGlobalError(error.message || 'Invalid credentials');
+            setGlobalError(
+                error.response?.data?.error || 'An unexpected error occurred. Please try again.'
+            );
         }
     };
 
@@ -100,6 +114,29 @@ export default function AuthPage() {
                             </p>
                         )}
                     </div>
+
+                    {!isLogin && (
+                        <div className="flex items-start space-x-3 pt-2">
+                            <div className="flex items-center h-5">
+                                <input
+                                    id="agreeToTerms"
+                                    type="checkbox"
+                                    className="w-4 h-4 rounded bg-slate-900 border-slate-700 text-primary focus:ring-primary focus:ring-offset-slate-900 transition-colors"
+                                    {...register('agreeToTerms')}
+                                />
+                            </div>
+                            <div className="flex flex-col">
+                                <label htmlFor="agreeToTerms" className="text-sm text-textMain">
+                                    I agree to the Terms of Service and Privacy Policy
+                                </label>
+                                {errors.agreeToTerms && (
+                                    <p className="text-error text-xs font-semibold mt-1">
+                                        {errors.agreeToTerms.message}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    )}
 
                     <button
                         type="submit"
