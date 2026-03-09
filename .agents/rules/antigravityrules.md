@@ -1,5 +1,5 @@
 ---
-trigger: manual
+trigger: always_on
 ---
 
 # PreLeave AI Agent Rules
@@ -43,6 +43,7 @@ Folders are split into frontend/src, backend/src, and shared.
   - List all the trip histories
   - "Reuse" button for duplicating a trip today
   - "Delete" button to delete a trip history
+  - "Logout" button at top for user to logout
 
 ### User Flows
 - Unauthenticated user visits any protected route → redirect to /login.

@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  password_hash     String
+  push_subscription Json?
+  created_at        DateTime @default(now())
+  trips             Trip[]
+}
+
+model Trip {
+  id                    String   @id @default(uuid())
+  user_id               String
+  start_address         String
+  start_lat             Float?
+  start_lng             Float?
+  dest_address          String
+  dest_lat              Float?
+  dest_lng              Float?
+  required_arrival_time DateTime
+  reminder_lead_minutes Int      @default(60)
+  status                String   @default("pending") // pending | reminded | completed | cancelled
+  recommended_transit   String?  // bus | uber
+  bus_eta_minutes       Int?
+  uber_eta_minutes      Int?
+  departure_time        DateTime?
+  created_at            DateTime @default(now())
+
+  user                  User     @relation(fields: [user_id], references: [id])
+}
