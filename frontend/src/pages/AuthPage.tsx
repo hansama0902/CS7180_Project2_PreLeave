@@ -4,12 +4,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { loginSchema, registerSchema, RegisterFormData } from '../schemas/auth.schema';
 import api from '../services/api';
+import { useAuthStore } from '../stores/authStore';
 import { Loader2 } from 'lucide-react';
 
 export default function AuthPage() {
     const [isLogin, setIsLogin] = useState(true);
     const [globalError, setGlobalError] = useState('');
     const navigate = useNavigate();
+    const setUser = useAuthStore((state) => state.setUser);
 
     // Use RegisterFormData to cover all possible fields
     type FormValues = RegisterFormData;
@@ -26,17 +28,23 @@ export default function AuthPage() {
     const onSubmit = async (data: FormValues) => {
         setGlobalError('');
         try {
+            let response;
             if (isLogin) {
-                await api.post('/auth/login', {
+                response = await api.post('/auth/login', {
                     email: data.email,
                     password: data.password,
                 });
             } else {
-                await api.post('/auth/register', {
+                response = await api.post('/auth/register', {
                     email: data.email,
                     password: data.password,
                     // backend doesn't expect agreeToTerms, but we enforce it on frontend.
                 });
+            }
+
+            // Save user info to global state
+            if (response.data?.data?.user) {
+                setUser(response.data.data.user);
             }
 
             // Redirect user to homepage on success

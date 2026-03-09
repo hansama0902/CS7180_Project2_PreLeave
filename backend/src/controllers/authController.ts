@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -64,6 +64,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     } catch (error: any) {
         if (error instanceof z.ZodError) {
             res.status(400).json({ success: false, error: 'Validation failed', details: error.errors });
+        } else if (error instanceof Prisma.PrismaClientKnownRequestError) {
+            if (error.code === 'P2002') {
+                res.status(409).json({ success: false, error: 'User already exists' });
+            } else {
+                console.error('Registration Prisma error:', error);
+                res.status(500).json({ success: false, error: 'Database error' });
+            }
         } else {
             console.error('Registration error:', error);
             res.status(500).json({ success: false, error: 'Internal server error' });

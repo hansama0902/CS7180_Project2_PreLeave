@@ -1,9 +1,26 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ProfilePage from './ProfilePage';
+import { useAuthStore } from '../stores/authStore';
+import api from '../services/api';
+
+vi.mock('../services/api');
+const mockNavigate = vi.fn();
+
+vi.mock('react-router-dom', async () => {
+    const actual = await vi.importActual('react-router-dom');
+    return {
+        ...(actual as object),
+        useNavigate: () => mockNavigate,
+    };
+});
 
 describe('ProfilePage', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        useAuthStore.setState({ user: { id: '123', email: 'test@example.com' } });
+    });
     it('renders the header and back button', () => {
         render(
             <BrowserRouter>
@@ -19,7 +36,7 @@ describe('ProfilePage', () => {
         expect(backLink).toHaveAttribute('href', '/homepage');
     });
 
-    it('renders the user profile information', () => {
+    it('renders the user profile information from store', () => {
         render(
             <BrowserRouter>
                 <ProfilePage />
@@ -28,7 +45,7 @@ describe('ProfilePage', () => {
 
         expect(screen.getByText('Profile')).toBeInTheDocument();
         expect(screen.getByText('Logged in as')).toBeInTheDocument();
-        expect(screen.getByText('NiceguyLang')).toBeInTheDocument();
+        expect(screen.getByText('test@example.com')).toBeInTheDocument();
     });
 
     it('renders trip history with reuse and delete buttons', () => {
@@ -49,5 +66,28 @@ describe('ProfilePage', () => {
 
         const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
         expect(deleteButtons.length).toBeGreaterThan(0);
+    });
+
+    it('handles logout flow correctly', async () => {
+        render(
+            <BrowserRouter>
+                <ProfilePage />
+            </BrowserRouter>
+        );
+
+        const logoutBtn = screen.getByRole('button', { name: /logout/i });
+        expect(logoutBtn).toBeInTheDocument();
+
+        vi.mocked(api.post).mockResolvedValueOnce({ data: { success: true } });
+
+        fireEvent.click(logoutBtn);
+
+        await waitFor(() => {
+            expect(api.post).toHaveBeenCalledWith('/auth/logout');
+            // The user should have been cleared in the store
+            expect(useAuthStore.getState().user).toBeNull();
+            // The user should be redirected to login
+            expect(mockNavigate).toHaveBeenCalledWith('/login');
+        });
     });
 });

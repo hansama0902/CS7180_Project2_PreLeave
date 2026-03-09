@@ -1,5 +1,7 @@
-import { Link } from 'react-router-dom';
-import { ArrowLeft, RefreshCw, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, RefreshCw, Trash2, LogOut } from 'lucide-react';
+import { useAuthStore } from '../stores/authStore';
+import api from '../services/api';
 
 const mockTrips = [
     {
@@ -19,7 +21,21 @@ const mockTrips = [
 ];
 
 export default function ProfilePage() {
-    const username = "NiceguyLang";
+    const user = useAuthStore((state) => state.user);
+    const clearUser = useAuthStore((state) => state.clearUser);
+    const navigate = useNavigate();
+    const username = user?.email || "Guest";
+
+    const handleLogout = async () => {
+        try {
+            await api.post('/auth/logout');
+        } catch (error) {
+            console.error('Logout error:', error);
+        } finally {
+            clearUser();
+            navigate('/login');
+        }
+    };
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -39,9 +55,19 @@ export default function ProfilePage() {
             </header>
 
             <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-                <div className="bg-white rounded-lg shadow p-6 mb-8">
-                    <h2 className="text-2xl font-bold text-gray-900">Profile</h2>
-                    <p className="text-gray-600 mt-1">Logged in as <span className="font-semibold text-gray-900">{username}</span></p>
+                <div className="bg-white rounded-lg shadow p-6 mb-8 flex justify-between items-center">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900">Profile</h2>
+                        <p className="text-gray-600 mt-1">Logged in as <span className="font-semibold text-gray-900">{username}</span></p>
+                    </div>
+                    <button
+                        onClick={handleLogout}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                        aria-label="Logout"
+                    >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Logout
+                    </button>
                 </div>
 
                 <div className="bg-white rounded-lg shadow overflow-hidden">
