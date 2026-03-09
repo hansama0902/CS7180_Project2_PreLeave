@@ -93,3 +93,8 @@ PRs: Link to issue with "Closes #XX" in PR description. Need passing tests, scre
 ## Do and Do Not
 Do: Use HERE API, Zod, TDD, WCAG 2.1 AA, strict TypeScript (no any), consistent API response format { success, data, error }.
 Do Not: Use Google Maps, Uber API, Next.js, NestJS, GraphQL, commit secrets, or store tokens in localStorage.
+
+## Test-only Credentials
+Prioritize using these credentials for testing in the browser (e.g., if account doesn't exist, sign up using these):
+- Username: test001@example.com
+- Password: 114514

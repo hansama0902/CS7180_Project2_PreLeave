@@ -126,3 +126,38 @@ export const getTrips = async (req: AuthRequest, res: Response): Promise<void> =
         res.status(500).json({ success: false, error: 'Internal server error' });
     }
 };
+
+export const deleteTrip = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const userId = req.userId;
+        const tripId = req.params.id;
+
+        if (!userId) {
+            res.status(401).json({ success: false, error: 'Unauthorized' });
+            return;
+        }
+
+        const trip = await prisma.trip.findUnique({
+            where: { id: tripId },
+        });
+
+        if (!trip) {
+            res.status(404).json({ success: false, error: 'Trip not found' });
+            return;
+        }
+
+        if (trip.user_id !== userId) {
+            res.status(403).json({ success: false, error: 'Forbidden' });
+            return;
+        }
+
+        await prisma.trip.delete({
+            where: { id: tripId },
+        });
+
+        res.status(200).json({ success: true, data: { id: tripId } });
+    } catch (error) {
+        console.error('Delete trip error:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+};

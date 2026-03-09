@@ -27,6 +27,7 @@ interface TripState {
     error: string | null;
     fetchTrips: () => Promise<void>;
     addTrip: (tripData: Omit<Trip, 'id' | 'createdAt' | 'status' | 'userId' | 'requiredArrivalTime' | 'reminderLeadMinutes'> & { arrivalTime: string, reminderLeadMinutes?: number }) => Promise<void>;
+    deleteTrip: (id: string) => Promise<void>;
 }
 
 export const useTripStore = create<TripState>((set) => ({
@@ -70,6 +71,21 @@ export const useTripStore = create<TripState>((set) => ({
             }
         } catch (err: any) {
             set({ error: err.response?.data?.error || 'Failed to create trip', isLoading: false });
+        }
+    },
+    deleteTrip: async (id) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await tripService.deleteTrip(id);
+            if (response.success) {
+                set({ isLoading: false });
+                const store = useTripStore.getState();
+                await store.fetchTrips();
+            } else {
+                set({ error: response.error || 'Failed to delete trip', isLoading: false });
+            }
+        } catch (err: any) {
+            set({ error: err.response?.data?.error || 'Failed to delete trip', isLoading: false });
         }
     },
 }));

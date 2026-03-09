@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserCircle, Plus, MapPin, Clock, Navigation } from 'lucide-react';
+import { UserCircle, Plus, MapPin, Clock, Navigation, Trash2 } from 'lucide-react';
 import { useTripStore } from '../stores/tripStore';
 
 export default function HomePage() {
     const navigate = useNavigate();
-    const { upcomingTrips, fetchTrips, isLoading } = useTripStore();
+    const { upcomingTrips, fetchTrips, isLoading, deleteTrip } = useTripStore();
 
     useEffect(() => {
         fetchTrips();
@@ -93,6 +93,14 @@ export default function HomePage() {
                                                 {trip.recommendedTransit === 'bus' ? '🚌 Take Bus' : '🚗 Take Uber'}
                                             </span>
                                         )}
+                                        <button
+                                            type="button"
+                                            onClick={() => deleteTrip(trip.id)}
+                                            className="ml-4 inline-flex items-center p-1.5 border border-transparent text-sm font-medium rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                            aria-label={`Delete trip to ${trip.destAddress}`}
+                                        >
+                                            <Trash2 className="h-5 w-5" />
+                                        </button>
                                     </div>
                                 </div>
                             </div>

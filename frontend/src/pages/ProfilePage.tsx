@@ -8,7 +8,7 @@ import api from '../services/api';
 export default function ProfilePage() {
     const user = useAuthStore((state) => state.user);
     const clearUser = useAuthStore((state) => state.clearUser);
-    const { historyTrips, fetchTrips, isLoading } = useTripStore();
+    const { historyTrips, fetchTrips, deleteTrip, isLoading } = useTripStore();
     const navigate = useNavigate();
     const username = user?.email || "Guest";
 
@@ -98,6 +98,7 @@ export default function ProfilePage() {
                                         </button>
                                         <button
                                             type="button"
+                                            onClick={() => deleteTrip(trip.id)}
                                             className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                                             aria-label="Delete"
                                         >

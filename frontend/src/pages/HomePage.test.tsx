@@ -71,9 +71,44 @@ describe('HomePage', () => {
         vi.mocked(useTripStore).mockReturnValue({ upcomingTrips: mockTrips, fetchTrips: vi.fn(), isLoading: false });
         renderComponent();
 
-        expect(screen.getByText('Office')).toBeInTheDocument();
+        expect(screen.getByText(/Office/)).toBeInTheDocument();
         expect(screen.getByText(/take bus/i)).toBeInTheDocument();
         // Missing the empty state
         expect(screen.queryByText('No upcoming trips')).not.toBeInTheDocument();
+    });
+
+    it('calls deleteTrip when the delete button is clicked', () => {
+        const futureDate = new Date();
+        futureDate.setHours(futureDate.getHours() + 2);
+
+        const mockTrips = [
+            {
+                id: '1',
+                startAddress: 'Home',
+                destAddress: 'Office',
+                arrivalTime: futureDate.toISOString(),
+                requiredArrivalTime: futureDate.toISOString(),
+                status: 'pending' as const,
+                createdAt: new Date().toISOString(),
+                recommendedTransit: 'bus' as const,
+                departureTime: new Date().toISOString()
+            }
+        ];
+
+        const mockDeleteTrip = vi.fn();
+        vi.mocked(useTripStore).mockReturnValue({
+            upcomingTrips: mockTrips,
+            fetchTrips: vi.fn(),
+            deleteTrip: mockDeleteTrip,
+            isLoading: false
+        });
+
+        renderComponent();
+
+        const deleteButton = screen.getByRole('button', { name: /delete trip to office/i });
+        expect(deleteButton).toBeInTheDocument();
+
+        deleteButton.click();
+        expect(mockDeleteTrip).toHaveBeenCalledWith('1');
     });
 });

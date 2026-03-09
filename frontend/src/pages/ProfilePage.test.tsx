@@ -28,6 +28,7 @@ vi.mock('../stores/tripStore', () => ({
             }
         ],
         fetchTrips: vi.fn(),
+        deleteTrip: vi.fn(),
         isLoading: false
     })),
 }));
@@ -113,5 +114,36 @@ describe('ProfilePage', () => {
             // The user should be redirected to login
             expect(mockNavigate).toHaveBeenCalledWith('/login');
         });
+    });
+
+    it('calls deleteTrip when the delete button is clicked', () => {
+        const mockDeleteTrip = vi.fn();
+        // Override the mock to inject our mockDeleteTrip
+        vi.mocked(useTripStore).mockReturnValue({
+            historyTrips: [
+                {
+                    id: '1',
+                    startAddress: '123 Main St',
+                    destAddress: '456 Market St',
+                    requiredArrivalTime: '2026-03-08T10:00:00Z',
+                    recommendedTransit: 'bus' as const,
+                }
+            ],
+            fetchTrips: vi.fn(),
+            deleteTrip: mockDeleteTrip,
+            isLoading: false
+        } as any);
+
+        render(
+            <BrowserRouter>
+                <ProfilePage />
+            </BrowserRouter>
+        );
+
+        const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+        expect(deleteButtons.length).toBeGreaterThan(0);
+
+        fireEvent.click(deleteButtons[0]);
+        expect(mockDeleteTrip).toHaveBeenCalledWith('1');
     });
 });

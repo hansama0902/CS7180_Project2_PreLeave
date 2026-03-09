@@ -45,6 +45,12 @@ export interface CreateTripResponse {
     error?: string;
 }
 
+export interface DeleteTripResponse {
+    success: boolean;
+    data?: { id: string };
+    error?: string;
+}
+
 export const getTrips = async (): Promise<GetTripsResponse> => {
     const response = await api.get<GetTripsResponse>('/trips');
     return response.data;
@@ -52,5 +58,10 @@ export const getTrips = async (): Promise<GetTripsResponse> => {
 
 export const createTrip = async (data: CreateTripDto): Promise<CreateTripResponse> => {
     const response = await api.post<CreateTripResponse>('/trips', data);
+    return response.data;
+};
+
+export const deleteTrip = async (id: string): Promise<DeleteTripResponse> => {
+    const response = await api.delete<DeleteTripResponse>(`/trips/${id}`);
     return response.data;
 };
