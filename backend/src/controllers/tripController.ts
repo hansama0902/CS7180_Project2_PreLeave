@@ -50,17 +50,33 @@ export const createTrip = async (req: AuthRequest, res: Response): Promise<void>
         let startLat = validatedData.startLat;
         let startLng = validatedData.startLng;
         if (startLat === undefined || startLng === undefined) {
-            const startCoords = await geocodeAddress(validatedData.startAddress);
-            startLat = startCoords.lat;
-            startLng = startCoords.lng;
+            try {
+                const startCoords = await geocodeAddress(validatedData.startAddress);
+                startLat = startCoords.lat;
+                startLng = startCoords.lng;
+            } catch (err: any) {
+                if (err.message && err.message.includes('Address not found')) {
+                    res.status(400).json({ success: false, error: 'Could not find the start address. Please enter a valid address.', field: 'startAddress' });
+                    return;
+                }
+                throw err;
+            }
         }
 
         let destLat = validatedData.destLat;
         let destLng = validatedData.destLng;
         if (destLat === undefined || destLng === undefined) {
-            const destCoords = await geocodeAddress(validatedData.destAddress);
-            destLat = destCoords.lat;
-            destLng = destCoords.lng;
+            try {
+                const destCoords = await geocodeAddress(validatedData.destAddress);
+                destLat = destCoords.lat;
+                destLng = destCoords.lng;
+            } catch (err: any) {
+                if (err.message && err.message.includes('Address not found')) {
+                    res.status(400).json({ success: false, error: 'Could not find the destination address. Please enter a valid address.', field: 'destAddress' });
+                    return;
+                }
+                throw err;
+            }
         }
 
         const origin = { lat: startLat, lng: startLng };
@@ -83,7 +99,8 @@ export const createTrip = async (req: AuthRequest, res: Response): Promise<void>
             ]);
 
             if (carEtaMinutes === 0 && busEtaMinutes === 0) {
-                throw new Error("No routes found for either transit or car.");
+                res.status(400).json({ success: false, error: 'No route found between the two addresses. Please check your addresses and try again.' });
+                return;
             }
         } catch (error) {
             console.error('Error fetching ETAs concurrently:', error);

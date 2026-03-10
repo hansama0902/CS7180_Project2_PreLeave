@@ -43,6 +43,7 @@ export interface CreateTripResponse {
     success: boolean;
     data?: Trip;
     error?: string;
+    field?: string;
 }
 
 export interface DeleteTripResponse {

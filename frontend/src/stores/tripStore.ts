@@ -26,7 +26,7 @@ interface TripState {
     isLoading: boolean;
     error: string | null;
     fetchTrips: () => Promise<void>;
-    addTrip: (tripData: Omit<Trip, 'id' | 'createdAt' | 'status' | 'userId' | 'requiredArrivalTime' | 'reminderLeadMinutes'> & { arrivalTime: string, reminderLeadMinutes?: number }) => Promise<void>;
+    addTrip: (tripData: Omit<Trip, 'id' | 'createdAt' | 'status' | 'userId' | 'requiredArrivalTime' | 'reminderLeadMinutes'> & { arrivalTime: string, reminderLeadMinutes?: number }) => Promise<{ success: boolean; error?: string; field?: string }>;
     deleteTrip: (id: string) => Promise<void>;
 }
 
@@ -66,11 +66,16 @@ export const useTripStore = create<TripState>((set) => ({
                 set({ isLoading: false });
                 const store = useTripStore.getState();
                 await store.fetchTrips();
+                return { success: true };
             } else {
                 set({ error: response.error || 'Failed to create trip', isLoading: false });
+                return { success: false, error: response.error || 'Failed to create trip', field: response.field };
             }
         } catch (err: any) {
-            set({ error: err.response?.data?.error || 'Failed to create trip', isLoading: false });
+            const errorMsg = err.response?.data?.error || 'Failed to create trip';
+            const errorField = err.response?.data?.field;
+            set({ error: errorMsg, isLoading: false });
+            return { success: false, error: errorMsg, field: errorField };
         }
     },
     deleteTrip: async (id) => {

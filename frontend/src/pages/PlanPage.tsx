@@ -1,4 +1,5 @@
-import { useForm } from 'react-hook-form';
+import { useState } from 'react';
+import { useForm, Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { useTripStore } from '../stores/tripStore';
@@ -8,25 +9,38 @@ import { MapPin, Clock } from 'lucide-react';
 export default function PlanPage() {
     const navigate = useNavigate();
     const addTrip = useTripStore((state) => state.addTrip);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
     const {
         register,
         handleSubmit,
+        setError,
         formState: { errors, isSubmitting },
     } = useForm<PlanTripFormData>({
         resolver: zodResolver(planTripSchema),
     });
 
     const onSubmit = async (data: PlanTripFormData) => {
-        const arrivalIsoString = new Date(`${data.arrivalDate}T${data.arrivalTime}`).toISOString();
-        await addTrip({
-            startAddress: data.startAddress,
-            destAddress: data.destAddress,
-            arrivalTime: arrivalIsoString,
-        });
-        const { error } = useTripStore.getState();
-        if (!error) {
-            navigate('/homepage');
+        setSubmitError(null);
+        try {
+            const arrivalIsoString = new Date(`${data.arrivalDate}T${data.arrivalTime}`).toISOString();
+            const result = await addTrip({
+                startAddress: data.startAddress,
+                destAddress: data.destAddress,
+                arrivalTime: arrivalIsoString,
+            });
+            
+            if (result.success) {
+                navigate('/homepage');
+            } else {
+                if (result.field && (result.field === 'startAddress' || result.field === 'destAddress')) {
+                    setError(result.field as Path<PlanTripFormData>, { type: 'server', message: result.error });
+                } else {
+                    setSubmitError(result.error || 'An unexpected error occurred');
+                }
+            }
+        } catch (err: any) {
+            setSubmitError(err.message || 'An unexpected error occurred');
         }
     };
 
@@ -43,6 +57,17 @@ export default function PlanPage() {
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                 <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                    {submitError && (
+                        <div className="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
+                            <div className="flex">
+                                <div className="ml-3">
+                                    <p className="text-sm text-red-600">
+                                        {submitError}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
 
                         <div>
@@ -57,7 +82,7 @@ export default function PlanPage() {
                                     id="startAddress"
                                     type="text"
                                     placeholder="e.g. 123 Main St"
-                                    className={`focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border ${errors.startAddress ? 'border-red-300' : ''
+                                    className={`focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm text-gray-900 border-gray-300 rounded-md py-2 px-3 border ${errors.startAddress ? 'border-red-300' : ''
                                         }`}
                                     {...register('startAddress')}
                                 />
@@ -79,7 +104,7 @@ export default function PlanPage() {
                                     id="destAddress"
                                     type="text"
                                     placeholder="e.g. 456 Work Ave"
-                                    className={`focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border ${errors.destAddress ? 'border-red-300' : ''
+                                    className={`focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm text-gray-900 border-gray-300 rounded-md py-2 px-3 border ${errors.destAddress ? 'border-red-300' : ''
                                         }`}
                                     {...register('destAddress')}
                                 />
@@ -100,7 +125,7 @@ export default function PlanPage() {
                                 <input
                                     id="arrivalDate"
                                     type="date"
-                                    className={`focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border ${errors.arrivalDate ? 'border-red-300' : ''
+                                    className={`focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm text-gray-900 border-gray-300 rounded-md py-2 px-3 border ${errors.arrivalDate ? 'border-red-300' : ''
                                         }`}
                                     {...register('arrivalDate')}
                                 />
@@ -121,7 +146,7 @@ export default function PlanPage() {
                                 <input
                                     id="arrivalTime"
                                     type="time"
-                                    className={`focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md py-2 px-3 border ${errors.arrivalTime ? 'border-red-300' : ''
+                                    className={`focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm text-gray-900 border-gray-300 rounded-md py-2 px-3 border ${errors.arrivalTime ? 'border-red-300' : ''
                                         }`}
                                     {...register('arrivalTime')}
                                 />
