@@ -14,9 +14,9 @@ webpush.setVapidDetails(
     VAPID_PRIVATE_KEY
 );
 
-export const sendPushNotification = async (subscription: any, payload: any) => {
+export const sendPushNotification = async (subscription: any, payload: any, ttl = 240) => {
     try {
-        await webpush.sendNotification(subscription, JSON.stringify(payload));
+        await webpush.sendNotification(subscription, JSON.stringify(payload), { TTL: ttl });
         return true;
     } catch (error) {
         console.error('Error sending push notification:', error);

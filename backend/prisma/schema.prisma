@@ -49,6 +49,7 @@ model Trip {
   car_leave_by          DateTime?
   departure_time        DateTime?
   notified              Boolean  @default(false)
+  notified_30min        Boolean  @default(false)
   eta_updated_at        DateTime @default(now())
   created_at            DateTime @default(now())
 

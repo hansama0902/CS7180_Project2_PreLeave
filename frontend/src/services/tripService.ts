@@ -75,13 +75,13 @@ export const getTrip = async (id: string): Promise<SingleTripResponse> => {
     return response.data;
 };
 
-export const createTrip = async (data: CreateTripDto): Promise<CreateTripResponse> => {
-    const response = await api.post<CreateTripResponse>('/trips', data);
+export const previewTripService = async (data: CreateTripDto): Promise<CreateTripResponse> => {
+    const response = await api.post<CreateTripResponse>('/trips/preview', data);
     return response.data;
 };
 
-export const updateTripTransit = async (id: string, mode: string): Promise<SingleTripResponse> => {
-    const response = await api.patch<SingleTripResponse>(`/trips/${id}/transit`, { mode });
+export const createTrip = async (data: CreateTripDto): Promise<CreateTripResponse> => {
+    const response = await api.post<CreateTripResponse>('/trips', data);
     return response.data;
 };
 
@@ -92,5 +92,10 @@ export const deleteTrip = async (id: string): Promise<DeleteTripResponse> => {
 
 export const refreshEta = async (id: string): Promise<SingleTripResponse> => {
     const response = await api.post<SingleTripResponse>(`/trips/${id}/refresh-eta`);
+    return response.data;
+};
+
+export const completeTrip = async (id: string): Promise<SingleTripResponse> => {
+    const response = await api.patch<SingleTripResponse>(`/trips/${id}/complete`);
     return response.data;
 };

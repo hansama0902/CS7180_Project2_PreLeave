@@ -15,7 +15,7 @@ interface Suggestion {
 export default function PlanPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const addTrip = useTripStore((state) => state.addTrip);
+    const createPreview = useTripStore((state) => state.createPreview);
     const [formWarning, setFormWarning] = useState<string | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
 
@@ -180,19 +180,19 @@ export default function PlanPage() {
                 setFormWarning("Note: Arrival time is very close. Some transit options may not be feasible.");
             }
 
-            const result = await addTrip({
+            const result = await createPreview({
                 startAddress: data.startAddress,
                 destAddress: data.destAddress,
                 arrivalTime: arrivalIsoString,
             });
             
             if (!result.success) {
-                setFormError(result.error || "Failed to create trip");
+                setFormError(result.error || "Failed to plan trip");
                 return;
             }
 
             if (result.data) {
-                navigate(`/trip-result/${result.data.id}`, { state: { trip: result.data } });
+                navigate('/trip-result/preview', { state: { preview: result.data } });
             }
         } catch (err: any) {
             setFormError(err.message || 'An unexpected error occurred');

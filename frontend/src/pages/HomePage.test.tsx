@@ -102,6 +102,7 @@ describe('HomePage', () => {
             upcomingTrips: mockTrips,
             fetchTrips: vi.fn(),
             deleteTrip: mockDeleteTrip,
+            completeTrip: vi.fn(),
             isLoading: false
         });
 
@@ -112,5 +113,41 @@ describe('HomePage', () => {
 
         deleteButton.click();
         expect(mockDeleteTrip).toHaveBeenCalledWith('1');
+    });
+
+    it('calls completeTrip when the complete button is clicked', () => {
+        const futureDate = new Date();
+        futureDate.setHours(futureDate.getHours() + 2);
+
+        const mockTrips = [
+            {
+                id: '1',
+                startAddress: 'Home',
+                destAddress: 'Office',
+                arrivalTime: futureDate.toISOString(),
+                requiredArrivalTime: futureDate.toISOString(),
+                status: 'pending' as const,
+                createdAt: new Date().toISOString(),
+                recommendedTransit: 'bus' as const,
+                departureTime: new Date().toISOString()
+            }
+        ];
+
+        const mockCompleteTrip = vi.fn();
+        vi.mocked(useTripStore).mockReturnValue({
+            upcomingTrips: mockTrips,
+            fetchTrips: vi.fn(),
+            deleteTrip: vi.fn(),
+            completeTrip: mockCompleteTrip,
+            isLoading: false
+        });
+
+        renderComponent();
+
+        const completeButton = screen.getByRole('button', { name: /complete trip to office/i });
+        expect(completeButton).toBeInTheDocument();
+
+        completeButton.click();
+        expect(mockCompleteTrip).toHaveBeenCalledWith('1');
     });
 });

@@ -16,7 +16,15 @@ self.addEventListener('push', function(event) {
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  if (event.action === 'open' || !event.action) {
+  if (event.action === 'navigate') {
+      const data = event.notification.data;
+      if (data && data.startAddress && data.destAddress) {
+          const mapsUrl = `https://www.google.com/maps/dir/${encodeURIComponent(data.startAddress)}/${encodeURIComponent(data.destAddress)}`;
+          event.waitUntil(clients.openWindow(mapsUrl));
+      } else {
+           event.waitUntil(clients.openWindow('/homepage'));
+      }
+  } else if (event.action === 'open' || !event.action) {
       if (event.notification.data && event.notification.data.url) {
           event.waitUntil(clients.openWindow(event.notification.data.url));
       } else {
