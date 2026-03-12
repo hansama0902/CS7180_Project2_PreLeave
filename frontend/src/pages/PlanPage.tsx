@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useTripStore } from '../stores/tripStore';
 import { planTripSchema, PlanTripFormData } from '../schemas/trip.schema';
 import { MapPin, Clock } from 'lucide-react';
@@ -14,6 +14,7 @@ interface Suggestion {
 
 export default function PlanPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const addTrip = useTripStore((state) => state.addTrip);
     const [formWarning, setFormWarning] = useState<string | null>(null);
     const [formError, setFormError] = useState<string | null>(null);
@@ -51,6 +52,47 @@ export default function PlanPage() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        // Handle pre-filling from state (for Reuse feature) or just setting current time
+        if (location.state?.startAddress) {
+            setValue('startAddress', location.state.startAddress, { shouldValidate: true });
+        }
+        if (location.state?.destAddress) {
+            setValue('destAddress', location.state.destAddress, { shouldValidate: true });
+        }
+
+        // Set date to today
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const formattedDate = `${year}-${month}-${day}`;
+        setValue('arrivalDate', formattedDate, { shouldValidate: true });
+
+        // Set time: either from state or fallback to nearest 5 minutes
+        if (location.state?.arrivalTime) {
+            // Parse time from ISO string, ensuring it is shown in local time
+            const originalDate = new Date(location.state.arrivalTime);
+            const hours = String(originalDate.getHours()).padStart(2, '0');
+            const mins = String(originalDate.getMinutes()).padStart(2, '0');
+            setValue('arrivalTime', `${hours}:${mins}`, { shouldValidate: true });
+        } else {
+            const minutes = now.getMinutes();
+            const remainder = minutes % 5;
+            const addMinutes = remainder === 0 ? 0 : 5 - remainder;
+            now.setMinutes(minutes + addMinutes);
+            now.setSeconds(0);
+            now.setMilliseconds(0);
+            
+            const hours = String(now.getHours()).padStart(2, '0');
+            const mins = String(now.getMinutes()).padStart(2, '0');
+            setValue('arrivalTime', `${hours}:${mins}`, { shouldValidate: true });
+        }
+
+        // Clear state so it doesn't stay around if the user navigates away and back
+        window.history.replaceState({}, document.title);
+    }, [location.state, setValue]);
 
     useEffect(() => {
         const fetchSuggestions = async () => {

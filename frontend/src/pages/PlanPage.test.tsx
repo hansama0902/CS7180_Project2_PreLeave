@@ -66,8 +66,6 @@ describe('PlanPage Component', () => {
 
         await waitFor(() => {
             expect(screen.getAllByText(/please enter a complete address/i)).toHaveLength(2);
-            expect(screen.getByText(/arrival date is required/i)).toBeInTheDocument();
-            expect(screen.getByText(/arrival time is required/i)).toBeInTheDocument();
         });
     });
 
