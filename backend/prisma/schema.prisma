@@ -14,6 +14,19 @@ model User {
   push_subscription Json?
   created_at        DateTime @default(now())
   trips             Trip[]
+  push_subscriptions PushSubscription[]
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  endpoint  String
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("push_subscriptions")
 }
 
 model Trip {
@@ -29,9 +42,14 @@ model Trip {
   reminder_lead_minutes Int      @default(60)
   status                String   @default("pending") // pending | reminded | completed | cancelled
   recommended_transit   String?  // bus | uber
+  selected_transit      String?  // bus | car
   bus_eta_minutes       Int?
   uber_eta_minutes      Int?
+  bus_leave_by          DateTime?
+  car_leave_by          DateTime?
   departure_time        DateTime?
+  notified              Boolean  @default(false)
+  eta_updated_at        DateTime @default(now())
   created_at            DateTime @default(now())
 
   user                  User     @relation(fields: [user_id], references: [id])

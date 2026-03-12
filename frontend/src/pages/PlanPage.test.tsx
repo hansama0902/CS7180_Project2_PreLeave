@@ -3,7 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { describe, it, expect, vi } from 'vitest';
 import PlanPage from './PlanPage';
 
-const { mockAddTrip, mockUseTripStore } = vi.hoisted(() => {
+const { mockUseTripStore } = vi.hoisted(() => {
     const addTrip = vi.fn();
     return {
         mockAddTrip: addTrip,
@@ -65,18 +65,15 @@ describe('PlanPage Component', () => {
         fireEvent.click(submitButton);
 
         await waitFor(() => {
-            expect(screen.getByText(/start address is required/i)).toBeInTheDocument();
-            expect(screen.getByText(/destination address is required/i)).toBeInTheDocument();
-            expect(screen.getByText(/arrival date is required/i)).toBeInTheDocument();
-            expect(screen.getByText(/arrival time is required/i)).toBeInTheDocument();
+            expect(screen.getAllByText(/please enter a complete address/i)).toHaveLength(2);
         });
     });
 
     it('displays validation error for past dates', async () => {
         renderComponent();
 
-        fireEvent.change(screen.getByLabelText(/start address/i), { target: { value: 'Home' } });
-        fireEvent.change(screen.getByLabelText(/destination address/i), { target: { value: 'Work' } });
+        fireEvent.change(screen.getByLabelText(/start address/i), { target: { value: 'Home Address' } });
+        fireEvent.change(screen.getByLabelText(/destination address/i), { target: { value: 'Work Address' } });
 
         // Use a past date
         const pastDate = new Date();
@@ -92,7 +89,7 @@ describe('PlanPage Component', () => {
         fireEvent.click(submitButton);
 
         await waitFor(() => {
-            expect(screen.getByText(/arrival time must be in the future/i)).toBeInTheDocument();
+            expect(screen.getAllByText(/arrival time must be in the future/i)).toHaveLength(2);
         });
     });
 

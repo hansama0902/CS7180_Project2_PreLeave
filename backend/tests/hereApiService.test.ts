@@ -116,7 +116,7 @@ describe('hereApiService', () => {
             expect(result).toBe(30);
 
             const calledUrl = (global.fetch as any).mock.calls[0][0];
-            expect(calledUrl).toContain('transportMode=publicTransit');
+            expect(calledUrl).toContain('https://transit.router.hereapi.com/v8/routes');
         });
 
         it('should throw an error for 204 No Content (No Route)', async () => {
@@ -127,7 +127,7 @@ describe('hereApiService', () => {
             };
             (global.fetch as any).mockResolvedValue(mockResponse);
 
-            await expect(getTransitEta(origin, dest, arrivalTime)).rejects.toThrow('No route found for publicTransit');
+            await expect(getTransitEta(origin, dest, arrivalTime)).rejects.toThrow('No route found for publicTransport');
         });
     });
 });

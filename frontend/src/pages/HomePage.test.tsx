@@ -64,7 +64,9 @@ describe('HomePage', () => {
                 status: 'pending' as const,
                 createdAt: new Date().toISOString(),
                 recommendedTransit: 'bus' as const,
-                departureTime: new Date().toISOString()
+                departureTime: new Date().toISOString(),
+                busEtaMinutes: 20,
+                uberEtaMinutes: 35
             }
         ];
 
@@ -72,8 +74,8 @@ describe('HomePage', () => {
         renderComponent();
 
         expect(screen.getByText(/Office/)).toBeInTheDocument();
-        expect(screen.getByText(/take bus/i)).toBeInTheDocument();
-        // Missing the empty state
+        expect(screen.getByText('🚌')).toBeInTheDocument();
+        expect(screen.getByText(/Recommended/i)).toBeInTheDocument();
         expect(screen.queryByText('No upcoming trips')).not.toBeInTheDocument();
     });
 

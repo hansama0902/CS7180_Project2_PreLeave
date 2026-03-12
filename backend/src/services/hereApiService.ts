@@ -51,18 +51,31 @@ export const geocodeAddress = async (address: string): Promise<Coordinates> => {
 /**
  * Gets the ETA in minutes for a specific transport mode and arrival time using HERE Routing API v8.
  */
-const getEta = async (origin: Coordinates, dest: Coordinates, arrivalTime: Date, transportMode: 'car' | 'pedestrian' | 'publicTransit'): Promise<number> => {
+const getEta = async (origin: Coordinates, dest: Coordinates, arrivalTime: Date, transportMode: 'car' | 'pedestrian' | 'publicTransport'): Promise<number> => {
     if (!HERE_API_KEY) throw new Error('HERE_API_KEY missing');
 
-    const url = new URL('https://router.hereapi.com/v8/routes');
+    const baseUrl = transportMode === 'publicTransport' 
+        ? 'https://transit.router.hereapi.com/v8/routes' 
+        : 'https://router.hereapi.com/v8/routes';
+        
+    const url = new URL(baseUrl);
     url.searchParams.append('origin', `${origin.lat},${origin.lng}`);
     url.searchParams.append('destination', `${dest.lat},${dest.lng}`);
-    url.searchParams.append('transportMode', transportMode);
+    
+    // Pass transportMode (for publicTransport, HERE might expect it under the normal router or transit, but we pass it as requested)
+    if (transportMode !== 'publicTransport') {
+        url.searchParams.append('transportMode', transportMode);
+    }
 
     // Format arrivalTime to ISO string required by HERE API (e.g., 2026-03-10T15:30:00+02:00)
     // Using simple toISOString, making sure it encodes properly.
     url.searchParams.append('arrivalTime', arrivalTime.toISOString());
-    url.searchParams.append('return', 'summary');
+    
+    if (transportMode !== 'publicTransport') {
+        url.searchParams.append('return', 'summary');
+    }
+    // Transit API usually returns sections with departure/arrival. We will parse it dynamically.
+    
     url.searchParams.append('apiKey', HERE_API_KEY);
 
     const response = await fetch(url.toString());
@@ -82,8 +95,26 @@ const getEta = async (origin: Coordinates, dest: Coordinates, arrivalTime: Date,
         throw new Error(`No route found for ${transportMode}`);
     }
 
-    // The duration is in seconds. Convert to minutes.
-    const durationSeconds = data.routes[0].sections.reduce((acc: number, section: any) => acc + section.summary.duration, 0);
+    // The duration is in seconds. For transit, it might be in duration. For routing it's in summary.duration.
+    let durationSeconds = 0;
+    for (const section of data.routes[0].sections) {
+        if (section.summary && section.summary.duration) {
+            durationSeconds += section.summary.duration;
+        } else if (section.duration) {
+             durationSeconds += section.duration;
+        } else if (section.departure && section.arrival) {
+             const dep = new Date(section.departure.time).getTime();
+             const arr = new Date(section.arrival.time).getTime();
+             durationSeconds += (arr - dep) / 1000;
+        }
+    }
+    
+    if (durationSeconds === 0) {
+        // Fallback check for top level duration (sometimes transit routes have it top-level or there's only one duration)
+        // Check if there's a duration on the route level? No, but let's assume if it failed to parse it's an error.
+        throw new Error(`Failed to parse duration for ${transportMode}`);
+    }
+    
     return Math.ceil(durationSeconds / 60);
 };
 
@@ -92,5 +123,5 @@ export const getCarEta = async (origin: Coordinates, dest: Coordinates, arrivalT
 };
 
 export const getTransitEta = async (origin: Coordinates, dest: Coordinates, arrivalTime: Date): Promise<number> => {
-    return getEta(origin, dest, arrivalTime, 'publicTransit');
+    return getEta(origin, dest, arrivalTime, 'publicTransport');
 };

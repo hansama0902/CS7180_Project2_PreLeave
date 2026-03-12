@@ -17,4 +17,25 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
+let isRedirecting = false;
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            useAuthStore.getState().clearUser();
+
+            if (!isRedirecting) {
+                isRedirecting = true;
+                const highestId = window.setInterval(() => {}, 0);
+                for (let i = 0; i < highestId; i++) {
+                    window.clearInterval(i);
+                }
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default api;
